@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
 import { taskType } from "@/components/types/Ttask";
 import Task from "@/components/Task";
 import Modal from "@/components/ui/Modal";
@@ -10,7 +9,10 @@ import config from "../src/aws-exports.js";
 import { generateClient } from "aws-amplify/api";
 import { listTasks } from "../src/graphql/queries";
 import { deleteTask, updateTask, createTask } from "../src/graphql/mutations";
-import Loading from "@/components/Loading";
+
+import AgentPage from "@/components/ModalPages/AgentPage";
+import ClarificationPage from "@/components/ModalPages/ClarificationPage";
+import ResultsPage from "@/components/ModalPages/ResultsPage";
 
 const client = generateClient();
 
@@ -72,39 +74,82 @@ export default function Home() {
   const closeModal = () => setShowModal(false);
   const openModal = () => setShowModal(true);
 
-  /*
-    intial page with agent and description, next button
-    clarification page, with continue button
-    result page 
-  */
-
   const [loading, setLoading] = useState(false);
+  const [modalPage, setModalPage] = useState<number>(1);
+  const [selectedTask, setSelectedTask] = useState<taskType>();
+  const [agent, setAgent] = useState({}); // TODO: create agent type
+
+  const [clarifyingQuestion, setClarifiyingQuestion] = useState("");
+  const [clarificationResponse, setClarificationResponse] =
+    useState<string>("");
+
+  const editClarification = (input: string) => {
+    setClarificationResponse(input);
+  };
+
+  const [result, setResult] = useState("");
 
   const playTask = async (index: number) => {
     for (let i = 0; i < tasks.length; i++) {
       if (i === index) {
-          const updatedTask = await client.graphql({
-            query: updateTask,
-            variables: {
-                input: {
-                    "id": tasks[i].id,
-                    "input": tasks[i].input,
-                    "output": tasks[i].output,
-                    "completed": tasks[i].completed,
-              }
-            }
+        const updatedTask = await client.graphql({
+          query: updateTask,
+          variables: {
+            input: {
+              id: tasks[i].id,
+              input: tasks[i].input,
+              output: tasks[i].output,
+              completed: tasks[i].completed,
+            },
+          },
         });
-      } 
+      }
     }
-      
-
+    setSelectedTask(tasks[index]);
+    setClarificationResponse("");
+    setResult("");
+    setModalPage(1);
+    //setLoading(true);
+    //make api call to classification
     openModal();
+  };
+
+  const nextPage = () => {
+    //hardcode which modalPage to navigate to and which apis to call
+    setLoading(true);
+    if (modalPage === 1) {
+      // call generate
+      setModalPage(2);
+    }
+    if (modalPage === 2) {
+      //call get results
+      setModalPage(3);
+    }
   };
 
   return (
     <div>
       <Modal close={closeModal} visible={showModal}>
-        <Loading />
+        {modalPage === 1 && (
+          <AgentPage
+            loading={loading}
+            selectedAgent={agent}
+            input={selectedTask?.input || ""}
+            next={nextPage}
+          />
+        )}
+        {modalPage === 2 && (
+          <ClarificationPage
+            questions={clarifyingQuestion}
+            loading={loading}
+            setResponse={editClarification}
+            value={clarificationResponse}
+            next={nextPage}
+          />
+        )}
+        {modalPage === 3 && (
+          <ResultsPage results={result} loading={loading} close={closeModal} />
+        )}
       </Modal>
 
       <div className="text-xl text-gray-800 font-semibold mb-4">Your Tasks</div>
