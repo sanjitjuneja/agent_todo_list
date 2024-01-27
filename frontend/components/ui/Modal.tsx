@@ -12,7 +12,7 @@ function Modal({ close, visible, children }: modalProps) {
         visible
           ? "opacity-100 pointer-events-auto"
           : "opacity-0 pointer-events-none"
-      } transition-all duration-300`}
+      } transition-all duration-300 z-50`}
     >
       <div className="md:w-2/3 h-3/4 w-11/12">
         <div

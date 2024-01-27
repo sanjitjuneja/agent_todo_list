@@ -1,44 +1,37 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { HiPlay } from "react-icons/hi2";
-import { RxCross2 } from "react-icons/rx";
-import Modal from "@/components/ui/Modal";
-import { Amplify } from 'aws-amplify';
-import config from '../src/aws-exports.js';
-import { generateClient } from "aws-amplify/api";
-import { createTask } from '../src/graphql/mutations';
-import { listTasks } from '../src/graphql/queries';
-import { deleteTask } from '../src/graphql/mutations';
 
-const client = generateClient()
+import { taskType } from "@/components/types/Ttask";
+import Task from "@/components/Task";
+import Modal from "@/components/ui/Modal";
+import { Amplify } from "aws-amplify";
+import config from "../src/aws-exports.js";
+import { generateClient } from "aws-amplify/api";
+import { createTask } from "../src/graphql/mutations";
+import { listTasks } from "../src/graphql/queries";
+import { deleteTask } from "../src/graphql/mutations";
+import Loading from "@/components/Loading";
+
+const client = generateClient();
 
 Amplify.configure(config);
 
-type task = {
-  id: string;
-  input: string;
-  output: string;
-  completed: Boolean;
-};
-
 export default function Home() {
-
   const fetchTasks = async () => {
     // List all items
-    const result = await client.graphql({
-      query: listTasks
-    }) as { data: { listTasks: { items: task[] } } };
-    const fetchedTasks: task[] = result.data?.listTasks.items || [];
+    const result = (await client.graphql({
+      query: listTasks,
+    })) as { data: { listTasks: { items: taskType[] } } };
+    const fetchedTasks: taskType[] = result.data?.listTasks.items || [];
     setTasks(fetchedTasks);
-  }
+  };
 
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  const [tasks, setTasks] = useState<task[]>([]);
+  const [tasks, setTasks] = useState<taskType[]>([]);
 
   const editTasks = (index: number, text: string) => {
     const newTasks = tasks.map((task, i) => {
@@ -50,7 +43,6 @@ export default function Home() {
     setTasks(newTasks);
   };
 
-
   const addTask = async () => {
     const newTask = await client.graphql({
       query: createTask,
@@ -58,56 +50,59 @@ export default function Home() {
         input: {
           input: "Enter your task here",
           output: "",
-          completed: false
-        }
-      }
+          completed: false,
+        },
+      },
     });
     fetchTasks();
   };
 
-  const removeTask = async (task: task) => {
+  const removeTask = async (task: taskType) => {
     const deletedTask = await client.graphql({
       query: deleteTask,
       variables: {
-          input: {
-              id: task.id
-          }
-      }
+        input: {
+          id: task.id,
+        },
+      },
     });
     fetchTasks();
+  };
+
+  const [showModal, setShowModal] = useState(false);
+  const closeModal = () => setShowModal(false);
+  const openModal = () => setShowModal(true);
+
+  /*
+    intial page with agent and description, next button
+    clarification page, with continue button
+    result page 
+  */
+
+  const [loading, setLoading] = useState(false);
+
+  const playTask = (index: number) => {
+    openModal();
   };
 
   return (
     <div>
+      <Modal close={closeModal} visible={showModal}>
+        <Loading />
+      </Modal>
+
       <div className="text-xl text-gray-800 font-semibold mb-4">Your Tasks</div>
       <div className="flex flex-col space-y-4">
         {tasks &&
           tasks.map((task, index) => {
             return (
-              <div
-                className={`border-gray-200 rounded-md cursor-pointer border py-1 ${
-                  task.completed && "bg-green-200"
-                }`}
-                key={index}
-              >
-                <div className="flex flex-row items-center">
-                  <div className=" opacity-40 hover:opacity-95 px-4">
-                    <HiPlay className="w-4 h-4 text-green-600" />
-                  </div>
-                  <Input
-                    className="border-none focus:border-none"
-                    type="email"
-                    value={task.input}
-                    onChange={(e) => editTasks(index, e.target.value)}
-                  />
-                  <div
-                    className=" opacity-40 hover:opacity-95 px-4"
-                    onClick={() => removeTask(task)}
-                  >
-                    <RxCross2 className="w-4 h-4 text-gray-9 00" />
-                  </div>
-                </div>
-              </div>
+              <Task
+                task={task}
+                index={index}
+                editTasks={editTasks}
+                deleteTask={removeTask}
+                playTask={playTask}
+              />
             );
           })}
         <div
