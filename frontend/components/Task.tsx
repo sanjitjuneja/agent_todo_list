@@ -30,7 +30,7 @@ function Task({ task, editTasks, deleteTask, index, playTask }: taskProps) {
         </div>
         <Input
           className="border-none focus:border-none"
-          value={task.name}
+          value={task.input}
           onChange={(e) => editTasks(index, e.target.value)}
         />
         <div

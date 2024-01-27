@@ -1,6 +1,6 @@
 export type taskType = {
   id: string;
-  name: string;
+  input: string;
   completed: Boolean;
-  result: string;
+  output: string;
 };

@@ -8,9 +8,8 @@ import Modal from "@/components/ui/Modal";
 import { Amplify } from "aws-amplify";
 import config from "../src/aws-exports.js";
 import { generateClient } from "aws-amplify/api";
-import { createTask } from "../src/graphql/mutations";
 import { listTasks } from "../src/graphql/queries";
-import { deleteTask } from "../src/graphql/mutations";
+import { deleteTask, updateTask, createTask } from "../src/graphql/mutations";
 import Loading from "@/components/Loading";
 
 const client = generateClient();
@@ -81,7 +80,24 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false);
 
-  const playTask = (index: number) => {
+  const playTask = async (index: number) => {
+    for (let i = 0; i < tasks.length; i++) {
+      if (i === index) {
+          const updatedTask = await client.graphql({
+            query: updateTask,
+            variables: {
+                input: {
+                    "id": tasks[i].id,
+                    "input": tasks[i].input,
+                    "output": tasks[i].output,
+                    "completed": tasks[i].completed,
+              }
+            }
+        });
+      } 
+    }
+      
+
     openModal();
   };
 
