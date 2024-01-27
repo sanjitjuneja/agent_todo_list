@@ -2,9 +2,22 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Loading from "@/components/Loading";
+import axios from "axios";
 //call backend to get agents
 
 function page() {
+
+  const getAgents = async () => {
+    const response = await fetch('/api/agents');
+    const result = await response.text();
+    console.log(result);
+    // setAgents(response.data);
+  }
+
+  useEffect(() => {
+    getAgents();
+  }, []);
+  
   const [agents, setAgents] = useState(["Awesome Agent", "Average Agent"]); //make agents type
   return (
     <div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import Loading from "../Loading";
 import { Button } from "../ui/button";
 type agentSelectProps = {
@@ -16,6 +16,18 @@ function AgentSelect({
   if (loading) {
     return <Loading />;
   }
+
+  const getClassification = async () => {
+    const response = await fetch('/api/classification');
+    const result = await response.text();
+    console.log(result);
+    // setAgents(response.data);
+  }
+
+  useEffect(() => {
+    getClassification();
+  }, []);
+
   return (
     <div className="flex flex-col space-y-4">
       <div className="font-semibold text-gray-700">
