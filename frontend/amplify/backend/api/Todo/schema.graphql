@@ -1,0 +1,6 @@
+type Task @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  input: String!
+  output: String
+  completed: Boolean!
+}
