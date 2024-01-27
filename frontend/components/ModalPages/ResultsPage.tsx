@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import Loading from "../Loading";
 import { Button } from "../ui/button";
 type resultsPageProps = {
@@ -11,6 +11,18 @@ function ResultsPage({ loading, close, results }: resultsPageProps) {
   if (loading) {
     return <Loading />;
   }
+  const getExecution = async () => {
+    const response = await fetch('/api/clarification');
+    const result = await response.text();
+    console.log(result);
+    // setAgents(response.data);
+  }
+
+  useEffect(() => {
+    getExecution();
+  }, []);
+
+
   return (
     <div>
       {results}

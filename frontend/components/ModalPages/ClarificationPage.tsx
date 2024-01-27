@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import Loading from "../Loading";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -21,6 +21,18 @@ function ClarificationPage({
   if (loading) {
     return <Loading />;
   }
+
+  const getClarification = async () => {
+    const response = await fetch('/api/clarification');
+    const result = await response.text();
+    console.log(result);
+    // setAgents(response.data);
+  }
+
+  useEffect(() => {
+    getClarification();
+  }, []);
+
   return (
     <div className="flex flex-col space-y-4">
       <div className="font-semibold text-gray-700">Clarifying Questions</div>
