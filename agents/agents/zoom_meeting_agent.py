@@ -1,49 +1,13 @@
+import requests
 from openai import OpenAI
 import json
 
-client = OpenAI(api_key="your-api-key")
+client = OpenAI(api_key="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")
 
 
 # AGENT ACTIONS
-from openai import OpenAI
-import json
-import requests  # For making API calls
-
-client = OpenAI(api_key="your-api-key")
-
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-
-
-def create_google_calendar_event(start_time, end_time, summary, description, attendees):
-    # Load credentials
-    creds = Credentials.from_authorized_user_file('token.json')
-
-    # Build the service
-    service = build('calendar', 'v3', credentials=creds)
-
-    # Create event object
-    event = {
-        'summary': summary,
-        'description': description,
-        'start': {
-            'dateTime': start_time,
-            'timeZone': 'Your/Timezone',
-        },
-        'end': {
-            'dateTime': end_time,
-            'timeZone': 'Your/Timezone',
-        },
-        'attendees': [{'email': attendee} for attendee in attendees],
-    }
-
-    # Call the Calendar API
-    event = service.events().insert(calendarId='primary', body=event).execute()
-    print(f"Event created: {event.get('htmlLink')}")
-
-    return event
-
-def create_zoom_meeting(start_time, duration, topic, attendees):
+def schedule_zoom_meeting(start_time, duration, topic, attendees):
+    return "Unable to accurately connect to Zoom API."
     # Your Zoom JWT token
     jwt_token = 'Your JWT Token'
 
@@ -81,17 +45,13 @@ def create_zoom_meeting(start_time, duration, topic, attendees):
     response = requests.post('https://api.zoom.us/v2/users/me/meetings', headers=headers, data=json.dumps(meeting_data))
     meeting_info = response.json()
 
-    # Add attendees (if any)
-    for attendee in attendees:
-        # Code to add attendee to the meeting
-
     return meeting_info
 
 
 # METADATA
-name = "Calendar Zoom Agent"
-description = "Set up Zoom meetings based on Google Calendar availability"
-keywords = ["zoom", "meeting", "schedule", "calendar", "appointment"]
+name = "Zoom Meeting Scheduler Agent"
+description = "Schedule a Zoom meeting with specified start time, duration, topic, and attendees"
+keywords = ["zoom", "meeting", "schedule", "video call", "conference"]
 functions = {
     "schedule_zoom_meeting": schedule_zoom_meeting,
 }
@@ -100,39 +60,35 @@ actions = [
         "type": "function",
         "function": {
             "name": "schedule_zoom_meeting",
-            "description": "Schedule a Zoom meeting based on the user's Google Calendar availability",
+            "description": "Schedule a Zoom meeting",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "user_schedule": {
+                    "start_time": {
                         "type": "string",
-                        "description": "The user's current schedule in a structured format",
+                        "description": "The start time of the meeting in ISO 8601 format, e.g., 2024-01-27T10:00:00",
                     },
-                    "meeting_details": {
-                        "type": "object",
-                        "properties": {
-                            "email": {
-                                "type": "string",
-                                "description": "Email address of the person to meet with",
-                            },
-                            "description": {
-                                "type": "string",
-                                "description": "Brief description of the meeting",
-                            }
+                    "duration": {
+                        "type": "integer",
+                        "description": "Duration of the meeting in minutes",
+                    },
+                    "topic": {
+                        "type": "string",
+                        "description": "The topic or title of the meeting",
+                    },
+                    "attendees": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
                         },
-                        "required": ["email"]
+                        "description": "List of attendee email addresses",
                     }
                 },
-                "required": ["user_schedule", "meeting_details"],
+                "required": ["start_time", "duration", "topic", "attendees"],
             },
         },
     }
 ]
-
-# AGENT EXECUTE FUNCTION
-def execute(user_input, clarifications=None):
-    # Interaction logic with the GPT model
-    # ... (similar to your provided example)
 
 
 # AGENT EXECUTE FUNCTION

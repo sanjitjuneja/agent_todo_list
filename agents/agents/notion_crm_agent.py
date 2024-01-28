@@ -1,75 +1,100 @@
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-
 from openai import OpenAI
 import json
+import requests
 
 client = OpenAI(api_key="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")
 
+# Notion API configuration
+notion_token = 'secret_cWVtCXqPe20ozxdHiBtbmS60i1jLx3HtNCxJUecP8xZ'
+notion_database_id = '333127d8f6ea423d86105d2f5c2e9963'
+notion_headers = {
+    "Authorization": f"Bearer {notion_token}",
+    "Content-Type": "application/json",
+    "Notion-Version": "2022-02-22"
+}
 
 
+# AGENT ACTIONS
+def save_to_notion(name, date, summary):
+    """Saves a contact and meeting summary to a Notion CRM page"""
+    data = {
+        "parent": {"database_id": notion_database_id},
+        "properties": {
+            "Name": {
+                "title": [
+                    {
+                        "text": {
+                            "content": name
+                        }
+                    }
+                ]
+            },
+            "Date": {
+                "date": {
+                    "start": date
+                }
+            },
+            "Summary": {
+                "rich_text": [
+                    {
+                        "text": {
+                            "content": summary
+                        }
+                    }
+                ]
+            }
+        }
+    }
+
+    response = requests.post(
+        'https://api.notion.com/v1/pages/',
+        headers=notion_headers,
+        data=json.dumps(data)
+    )
+
+    # Detailed response handling
+    if response.status_code in [200, 201]:
+        return json.dumps({"status": "success", "message": "Contact and summary saved to Notion"})
+    else:
+        return json.dumps({"status": "error", "message": "Failed to save to Notion", "details": response.text})
 
 
-def send_email(subject, body, recipient):
-    smtp_server = 'smtp.gmail.com'  # Replace with your SMTP server
-    port = 587  # Replace with your SMTP port (commonly 587 for TLS)
-    username = 'albertsun0000@gmail.com'  # Replace with your email address
-    password = '765660aa'  # Replace with your email password
-    recipient = 'sanjit.juneja@utexas.edu'  # Replace with the recipient's email address
-
-    # Create the message
-    message = MIMEMultipart()
-    message['From'] = username
-    message['To'] = recipient
-    message['Subject'] = subject
-    message.attach(MIMEText(body, 'plain'))
-
-    # Connect to the server and send the email
-    try:
-        server = smtplib.SMTP(smtp_server, port)
-        server.starttls()  # Enable security
-        server.login(username, password)
-        server.sendmail(username, recipient, message.as_string())
-        server.quit()
-        return "Email sent successfully!"
-    except Exception as e:
-        return f"Failed to send email: {str(e)}"
 
 # METADATA
-name = "Email Agent"
-description = "Send an email with a subject, body, and recipient"
-keywords = ["email", "send", "subject", "body", "recipient"]
+name = "Notion CRM Agent"
+description = "Saves a contact and meeting summary to a Notion CRM page"
+keywords = ["notion", "crm", "customer", "relationship", "management", "save", "contact", "meeting", "summary"]
 functions = {
-    "send_email": send_email,
+    "save_to_notion": save_to_notion
 }
 actions = [
     {
         "type": "function",
         "function": {
-            "name": "send_email",
-            "description": "Send an email with a subject, body, and recipient",
+            "name": "save_to_notion",
+            "description": "Saves a contact and meeting summary to a Notion CRM page",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "subject": {
+                    "name": {
                         "type": "string",
-                        "description": "The subject of the email",
+                        "description": "Name of the contact"
                     },
-                    "body": {
+                    "date": {
                         "type": "string",
-                        "description": "The body content of the email",
+                        "description": "Date of the meeting"
                     },
-                    "recipient": {
+                    "summary": {
                         "type": "string",
-                        "description": "The recipient's email address",
+                        "description": "Summary of the meeting"
                     }
                 },
-                "required": ["subject", "body", "recipient"],
+                "required": ["name", "date", "summary"],
             },
         },
     }
 ]
+
 
 # AGENT EXECUTE FUNCTION
 def execute(user_input, clarifications=None):

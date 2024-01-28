@@ -28,15 +28,17 @@ def execution(agent, user_input, clarifications=None):
 
 if __name__ == '__main__':
     user_input = input("Enter your task: ")
-    for key, value in agents.items():
-        print(f"Agent: {key}, Info: {value}")
 
     agent = classify_task(user_input)
-    print("Picked Agent: ", agent.get('name'))
+    print("Agent Picked: ", agent.get('name'))
     clarifiying_question = get_clarifying_question(agent, user_input)
+
+    print("\n")
+    print("\n")
 
     # Ask clarifying questions
     clarifications = input(clarifiying_question) if clarifiying_question else None
+
 
     if agent:
         # Execute the relevant function from the agent

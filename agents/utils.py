@@ -17,7 +17,6 @@ def load_agents():
                 "description": getattr(module, "description", ""),
                 "keywords": getattr(module, "keywords", []),
                 "functions": getattr(module, "functions", {}),
-                "picture": None, # Placeholder for agent picture,
                 "execute": getattr(module, "execute", None)
             }
 
